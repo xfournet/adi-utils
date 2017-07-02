@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>ADI utils</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-fork-ribbon-css/0.2.1/gh-fork-ribbon.min.css">
+    <style>
+        .tz-ko {
+            color: #ff0000;
+        }
+
+        .tz-ok {
+            color: #000000;
+        }
+    </style>
+    <script src="https://cdn.rawgit.com/dcodeIO/Long.js/3.2.0/dist/long.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.13/moment-timezone-with-data.min.js"></script>
+    <script>
+        let tz = moment.tz.guess();
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const timezone = document.querySelector("#timezone");
+            const timezoneLabel = document.querySelector("#timezoneLabel");
+            const timezones = document.querySelector("#timezones");
+            const ttCurrent = document.querySelector("#ttCurrent");
+            const ttInput = document.querySelector("#ttInput");
+            const ttOutput = document.querySelector("#ttOutput");
+            const vtCurrent = document.querySelector("#vtCurrent");
+            const vtInput = document.querySelector("#vtInput");
+            const vtOutput = document.querySelector("#vtOutput");
+            const now = new Date();
+
+            timezone.value = tz;
+            timezones.options = moment.tz.names().forEach(function(tz) {
+                const option = document.createElement('option');
+                option.value = tz;
+                timezones.appendChild(option);
+            });
+
+            let l = dcodeIO.Long.fromNumber(now.getTime());
+            l = l.shl(20);
+            ttCurrent.textContent = l.toString();
+            vtCurrent.textContent = now.getTime();
+
+            timezone.addEventListener("input", function() {
+                tz = timezone.value;
+                if (moment.tz.zone(tz)) {
+                    timezoneLabel.className = "tz-ok";
+                    formatTTs();
+                    formatVTs();
+                }
+                else {
+                    timezoneLabel.className = "tz-ko";
+                }
+            });
+
+            ttInput.addEventListener("input", formatTTs);
+            vtInput.addEventListener("input", formatVTs);
+        });
+
+        function formatTTs() {
+            ttOutput.value = formatValues(ttInput.value, formatTT);
+        }
+
+        function formatVTs() {
+            vtOutput.value = formatValues(vtInput.value, formatVT);
+        }
+
+        function formatValues(text, formatter) {
+            let output = "";
+            text.split("\n").forEach(function(line) {
+                let converted = "";
+                if (line.length > 0) {
+                    try {
+                        converted = formatter(line.trim());
+                    }
+                    catch (err) {
+                        converted = "Error !";
+                    }
+                }
+                output = output + converted + "\n";
+            });
+            return output;
+        }
+
+        function formatTT(tt) {
+            let l = dcodeIO.Long.fromString(tt);
+            l = l.shr(20);
+
+            return format(Number(l.toNumber()));
+        }
+
+        function formatVT(vt) {
+            return format(Number(vt));
+        }
+
+        function format(millis) {
+            return moment(millis).tz(tz).format("YYYY-MM-DD HH:mm:ss.SSS");
+        }
+    </script>
+</head>
+<body>
+
+<h1>ADI utilities</h1>
+
+<label id="timezoneLabel" class="tz-ok">Time zone: <input id="timezone" type="text" list="timezones"/></label>
+<datalist id="timezones"></datalist>
+
+<h2>Transaction time</h2>
+Current TT: <span id="ttCurrent">current TT</span>
+<table>
+    <tbody>
+    <tr>
+        <th>TT</th>
+        <th>Formatted TT</th>
+    </tr>
+    <tr>
+        <td><textarea cols="30" rows="10" id="ttInput" placeholder="Put one TT per line here" spellcheck="false"></textarea></td>
+        <td><textarea cols="30" rows="10" id="ttOutput" placeholder="Formatted TT" spellcheck="false" disabled></textarea></td>
+    </tr>
+    </tbody>
+</table>
+<p>
+
+<h2>Valid time</h2>
+Current VT: <span id="vtCurrent">current VT</span>
+<table>
+    <tbody>
+    <tr>
+        <th>VT</th>
+        <th>Formatted VT</th>
+    </tr>
+    <tr>
+        <td><textarea cols="30" rows="10" id="vtInput" placeholder="Put one VT per line here" spellcheck="false"></textarea></td>
+        <td><textarea cols="30" rows="10" id="vtOutput" placeholder="Formatted VT" spellcheck="false" disabled></textarea></td>
+    </tr>
+    </tbody>
+</table>
+<p>
+
+    <a class="github-fork-ribbon right-top" href="https://github.com/xfournet/adi-utils" title="Fork me on GitHub">Fork me on GitHub</a>
+
+</body>
+</html>
