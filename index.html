@@ -59,10 +59,7 @@
 
             ttInput.addEventListener("input", formatTTs);
             vtInput.addEventListener("input", formatVTs);
-
-            hex2TxtInput.addEventListener("input", function() {
-                hex2TxtOutput.value = hexToString(hex2TxtInput.value);
-            });
+            hex2TxtInput.addEventListener("input", formatHex2Txt);
 
             function formatTTs() {
                 ttOutput.value = formatValues(ttInput.value, formatTT);
@@ -70,6 +67,10 @@
 
             function formatVTs() {
                 vtOutput.value = formatValues(vtInput.value, formatVT);
+            }
+
+            function formatHex2Txt() {
+                hex2TxtOutput.value = formatValues(hex2TxtInput.value, hexToString);
             }
         });
 
