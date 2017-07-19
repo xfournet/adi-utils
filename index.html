@@ -29,6 +29,8 @@
             const vtCurrent = document.querySelector("#vtCurrent");
             const vtInput = document.querySelector("#vtInput");
             const vtOutput = document.querySelector("#vtOutput");
+            const hex2TxtInput = document.querySelector("#hex2TxtInput");
+            const hex2TxtOutput = document.querySelector("#hex2TxtOutput");
             const now = new Date();
 
             timezone.value = tz;
@@ -57,15 +59,19 @@
 
             ttInput.addEventListener("input", formatTTs);
             vtInput.addEventListener("input", formatVTs);
+
+            hex2TxtInput.addEventListener("input", function() {
+                hex2TxtOutput.value = hexToString(hex2TxtInput.value);
+            });
+
+            function formatTTs() {
+                ttOutput.value = formatValues(ttInput.value, formatTT);
+            }
+
+            function formatVTs() {
+                vtOutput.value = formatValues(vtInput.value, formatVT);
+            }
         });
-
-        function formatTTs() {
-            ttOutput.value = formatValues(ttInput.value, formatTT);
-        }
-
-        function formatVTs() {
-            vtOutput.value = formatValues(vtInput.value, formatVT);
-        }
 
         function formatValues(text, formatter) {
             let output = "";
@@ -85,18 +91,49 @@
         }
 
         function formatTT(tt) {
-            let l = dcodeIO.Long.fromString(tt);
-            l = l.shr(20);
+            let l;
+            if (tt.startsWith("0x")) {
+                l = dcodeIO.Long.fromString(tt.substr(2), true, 16);
+            }
+            else {
+                l = dcodeIO.Long.fromString(tt);
+            }
 
-            return format(Number(l.toNumber()));
+            let millis = l.shr(20).toNumber();
+            let counter = l.shr(11).and(511).toNumber();
+            let node = l.and(2047).toNumber();
+
+            return format(millis) + " counter=" + counter + " node=" + node;
         }
 
         function formatVT(vt) {
-            return format(Number(vt));
+            if (vt.startsWith("0x")) {
+                return format(parseInt(vt.substr(2), 16));
+            }
+            else {
+                return format(parseInt(vt));
+            }
         }
 
         function format(millis) {
             return moment(millis).tz(tz).format("YYYY-MM-DD HH:mm:ss.SSS");
+        }
+
+        function stringToHex(txt) {
+            let hex = "";
+            for (let i = 0; i < txt.length; i++) {
+                hex += d.toString(txt.charCodeAt(i), 16);
+            }
+            return hex;
+        }
+
+        function hexToString(hex) {
+            let txt = "";
+            for (let i = 0; i < hex.length; i += 2) {
+                txt += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+            }
+
+            return txt;
         }
     </script>
 </head>
@@ -116,8 +153,8 @@ Current TT: <span id="ttCurrent">current TT</span>
         <th>Formatted TT</th>
     </tr>
     <tr>
-        <td><textarea cols="30" rows="10" id="ttInput" placeholder="Put one TT per line here" spellcheck="false"></textarea></td>
-        <td><textarea cols="30" rows="10" id="ttOutput" placeholder="Formatted TT" spellcheck="false" disabled></textarea></td>
+        <td><textarea cols="50" rows="10" id="ttInput" placeholder="Put one TT per line here" spellcheck="false"></textarea></td>
+        <td><textarea cols="50" rows="10" id="ttOutput" placeholder="Formatted TT" spellcheck="false" disabled></textarea></td>
     </tr>
     </tbody>
 </table>
@@ -132,8 +169,23 @@ Current VT: <span id="vtCurrent">current VT</span>
         <th>Formatted VT</th>
     </tr>
     <tr>
-        <td><textarea cols="30" rows="10" id="vtInput" placeholder="Put one VT per line here" spellcheck="false"></textarea></td>
-        <td><textarea cols="30" rows="10" id="vtOutput" placeholder="Formatted VT" spellcheck="false" disabled></textarea></td>
+        <td><textarea cols="50" rows="10" id="vtInput" placeholder="Put one VT per line here" spellcheck="false"></textarea></td>
+        <td><textarea cols="50" rows="10" id="vtOutput" placeholder="Formatted VT" spellcheck="false" disabled></textarea></td>
+    </tr>
+    </tbody>
+</table>
+<p>
+
+<h2>Hex to text</h2>
+<table>
+    <tbody>
+    <tr>
+        <th>Hexadecimal</th>
+        <th>Text</th>
+    </tr>
+    <tr>
+        <td><textarea cols="50" rows="10" id="hex2TxtInput" placeholder="Put one hex string per line here" spellcheck="false"></textarea></td>
+        <td><textarea cols="50" rows="10" id="hex2TxtOutput" placeholder="Raw text" spellcheck="false" disabled></textarea></td>
     </tr>
     </tbody>
 </table>
